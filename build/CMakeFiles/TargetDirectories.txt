@@ -1,8 +1,0 @@
-/home/laura/tower-defense/build/CMakeFiles/tower_defense.dir
-/home/laura/tower-defense/build/CMakeFiles/clean-all.dir
-/home/laura/tower-defense/build/CMakeFiles/edit_cache.dir
-/home/laura/tower-defense/build/CMakeFiles/rebuild_cache.dir
-/home/laura/tower-defense/build/CMakeFiles/list_install_components.dir
-/home/laura/tower-defense/build/CMakeFiles/install.dir
-/home/laura/tower-defense/build/CMakeFiles/install/local.dir
-/home/laura/tower-defense/build/CMakeFiles/install/strip.dir

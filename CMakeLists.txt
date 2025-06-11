@@ -129,6 +129,75 @@ if(NOT SFML_FOUND)
     )
 endif()
 
+# ======================================
+# GESTION DE NLOHMANN/JSON (FLEXIBLE)
+# ======================================
+
+# Variable pour tracker si nlohmann/json est trouvé
+set(JSON_FOUND FALSE)
+
+# Méthode 1: Essayer find_package (installation moderne)
+find_package(nlohmann_json QUIET)
+if(nlohmann_json_FOUND)
+    message(STATUS "nlohmann/json trouvé via find_package")
+    target_link_libraries(tower_defense nlohmann_json::nlohmann_json)
+    set(JSON_FOUND TRUE)
+endif()
+
+# Méthode 2: Essayer PkgConfig
+if(NOT JSON_FOUND)
+    find_package(PkgConfig QUIET)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(NLOHMANN_JSON QUIET nlohmann_json)
+        if(NLOHMANN_JSON_FOUND)
+            message(STATUS "nlohmann/json trouvé via PkgConfig")
+            target_include_directories(tower_defense PRIVATE ${NLOHMANN_JSON_INCLUDE_DIRS})
+            set(JSON_FOUND TRUE)
+        endif()
+    endif()
+endif()
+
+# Méthode 3: Rechercher les headers dans les chemins système
+if(NOT JSON_FOUND)
+    find_path(NLOHMANN_JSON_INCLUDE_DIR
+        NAMES nlohmann/json.hpp
+        PATHS
+            /usr/include
+            /usr/local/include
+            /opt/local/include
+            ${CMAKE_PREFIX_PATH}/include
+        NO_DEFAULT_PATH
+    )
+    
+    if(NLOHMANN_JSON_INCLUDE_DIR)
+        message(STATUS "nlohmann/json trouvé dans les headers système: ${NLOHMANN_JSON_INCLUDE_DIR}")
+        target_include_directories(tower_defense PRIVATE ${NLOHMANN_JSON_INCLUDE_DIR})
+        set(JSON_FOUND TRUE)
+    endif()
+endif()
+
+# Méthode 4: Recherche dans le projet local
+if(NOT JSON_FOUND)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/nlohmann/json.hpp")
+        message(STATUS "nlohmann/json trouvé localement dans include/")
+        target_include_directories(tower_defense PRIVATE include)
+        set(JSON_FOUND TRUE)
+    endif()
+endif()
+
+# Si toujours pas trouvé, donner des instructions
+if(NOT JSON_FOUND)
+    message(WARNING 
+        "nlohmann/json non trouvé!\n"
+        "Solutions possibles:\n"
+        "1. Installer via apt: sudo apt install nlohmann-json3-dev\n"
+        "2. Télécharger json.hpp dans include/nlohmann/\n"
+        "3. Le code peut compiler sans mais la sauvegarde ne fonctionnera pas"
+    )
+    # Ajouter une définition pour désactiver le JSON si nécessaire
+    target_compile_definitions(tower_defense PRIVATE NO_JSON_SUPPORT)
+endif()
+
 # Options de compilation pour différentes plateformes
 if(WIN32)
     # Windows
@@ -136,13 +205,6 @@ if(WIN32)
         target_compile_options(tower_defense PRIVATE /W3)
     else()
         target_compile_options(tower_defense PRIVATE -Wall -Wextra)
-    endif()
-    
-    # Copier les DLL SFML sur Windows (si nécessaire)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(SFML_DLL_SUFFIX "-d-2")
-    else()
-        set(SFML_DLL_SUFFIX "-2")
     endif()
     
 elseif(APPLE)
@@ -207,6 +269,8 @@ message(STATUS "  - Compilateur: ${CMAKE_CXX_COMPILER}")
 message(STATUS "  - Standard C++: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  - Type de build: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  - Plateforme: ${CMAKE_SYSTEM_NAME}")
+message(STATUS "  - SFML trouvé: ${SFML_FOUND}")
+message(STATUS "  - nlohmann/json trouvé: ${JSON_FOUND}")
 
 # Instructions d'installation (optionnel)
 install(TARGETS tower_defense
@@ -219,7 +283,3 @@ add_custom_target(clean-all
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/bin
     COMMENT "Nettoyage complet du projet"
 )
-
-# Ajouter la dépendance nlohmann_json
-find_package(nlohmann_json 3.11.3 REQUIRED)
-target_link_libraries(tower_defense nlohmann_json::nlohmann_json)
