@@ -7,7 +7,7 @@ set(CMAKE_DEPENDS_GENERATOR "Unix Makefiles")
 # The top level Makefile was generated from the following files:
 set(CMAKE_MAKEFILE_DEPENDS
   "CMakeCache.txt"
-  "/home/elodie/C - C++/Tower Defense/tower-defense/CMakeLists.txt"
+  "/home/laura/tower-defense/CMakeLists.txt"
   "CMakeFiles/3.28.3/CMakeCCompiler.cmake"
   "CMakeFiles/3.28.3/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.28.3/CMakeSystem.cmake"
@@ -48,6 +48,9 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-3.28/Modules/Platform/Linux.cmake"
   "/usr/share/cmake-3.28/Modules/Platform/UnixPaths.cmake"
   "/usr/share/cmake-3.28/Modules/SelectLibraryConfigurations.cmake"
+  "/usr/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake"
+  "/usr/share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake"
+  "/usr/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake"
   )
 
 # The corresponding makefile is:

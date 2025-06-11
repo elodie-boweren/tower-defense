@@ -219,3 +219,7 @@ add_custom_target(clean-all
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/bin
     COMMENT "Nettoyage complet du projet"
 )
+
+# Ajouter la dépendance nlohmann_json
+find_package(nlohmann_json 3.11.3 REQUIRED)
+target_link_libraries(tower_defense nlohmann_json::nlohmann_json)

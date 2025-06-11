@@ -7,6 +7,10 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fstream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 // Constants
 const int WINDOW_WIDTH = 1000;
@@ -314,9 +318,9 @@ public:
 class Enemy {
 public:
     sf::Vector2f position;
-    float speed;
     int health;
     int maxHealth;
+    float speed;
     int reward;
     bool alive;
     int pathIndex;
@@ -324,7 +328,7 @@ public:
 
     Enemy(int hp, float spd, int rew, const std::string& t) 
         : health(hp), maxHealth(hp), speed(spd), reward(rew), alive(true), pathIndex(0), type(t) {
-        position = sf::Vector2f(0, 300);
+        // La position initiale sera définie par le Game
     }
 
     virtual ~Enemy() = default;
@@ -410,10 +414,29 @@ public:
     }
 };
 
+// Nouveaux types d'ennemis
+class HeavyEnemy : public Enemy {
+public:
+    HeavyEnemy() : Enemy(400, 30, 60, "Heavy") {}
+    
+    sf::Color getColor() override {
+        return sf::Color(139, 69, 19); // Marron
+    }
+};
+
+class MediumEnemy : public Enemy {
+public:
+    MediumEnemy() : Enemy(200, 45, 35, "Medium") {}
+    
+    sf::Color getColor() override {
+        return sf::Color(0, 128, 128); // Turquoise
+    }
+};
+
 // Factory to create enemies
 class EnemyFactory {
 public:
-    enum EnemyType { GOBLIN, ORC, TROLL };
+    enum EnemyType { GOBLIN, ORC, TROLL, HEAVY, MEDIUM };
     
     static std::unique_ptr<Enemy> createEnemy(EnemyType type) {
         switch(type) {
@@ -426,20 +449,50 @@ public:
             case TROLL:
                 std::cout << "Factory: Creating a Troll" << std::endl;
                 return std::make_unique<Troll>();
+            case HEAVY:
+                std::cout << "Factory: Creating a Heavy Enemy" << std::endl;
+                return std::make_unique<HeavyEnemy>();
+            case MEDIUM:
+                std::cout << "Factory: Creating a Medium Enemy" << std::endl;
+                return std::make_unique<MediumEnemy>();
             default:
                 return std::make_unique<Goblin>();
         }
     }
     
-    // Method to determine which enemy type to create according to wave
-    static EnemyType getEnemyTypeForWave(int wave, int enemyIndex) {
-        if (wave <= 3) {
+    static EnemyType getEnemyTypeForWave(int wave, int level, int enemyIndex) {
+        int totalDifficulty = wave + (level - 1) * 3;
+        
+        if (totalDifficulty <= 3) {
             return GOBLIN;
-        } else if (wave <= 6) {
-            return (enemyIndex % 2 == 0) ? ORC : GOBLIN;
-        } else {
-            if (enemyIndex % 3 == 0) return TROLL;
-            else return ORC;
+        }
+        else if (totalDifficulty <= 6) {
+            if (enemyIndex % 8 == 0) return MEDIUM;
+            return (enemyIndex % 5 == 0) ? ORC : GOBLIN;
+        }
+        else if (totalDifficulty <= 9) {
+            if (enemyIndex % 10 == 0) return HEAVY;
+            else if (enemyIndex % 6 == 0) return MEDIUM;
+            return (enemyIndex % 5 < 2) ? ORC : GOBLIN;
+        }
+        else if (totalDifficulty <= 12) {
+            if (enemyIndex % 8 == 0) return HEAVY;
+            else if (enemyIndex % 5 == 0) return MEDIUM;
+            return (enemyIndex % 5 < 3) ? ORC : GOBLIN;
+        }
+        else if (totalDifficulty <= 15) {
+            if (enemyIndex % 10 == 0) return TROLL;
+            else if (enemyIndex % 8 == 0) return HEAVY;
+            else if (enemyIndex % 6 == 0) return MEDIUM;
+            else if (enemyIndex % 10 < 7) return ORC;
+            else return GOBLIN;
+        }
+        else {
+            if (enemyIndex % 10 < 3) return TROLL;
+            else if (enemyIndex % 8 == 0) return HEAVY;
+            else if (enemyIndex % 6 == 0) return MEDIUM;
+            else if (enemyIndex % 10 < 9) return ORC;
+            else return GOBLIN;
         }
     }
 };
@@ -617,17 +670,143 @@ private:
     int gold;
     int lives;
     int wave;
+    int level;
     float enemySpawnTimer;
     int enemiesInWave;
     int enemiesSpawned;
     bool waveActive;
     int score;
-    ResourceManager resourceManager; // Resource manager with font support
+    ResourceManager resourceManager;
+    bool gameOver;
+    bool showReplayOption;
+    bool showSaveOption;
+    std::string playerName;
+    bool waitingForName;
+    
+    // Chemins prédéfinis
+    const std::vector<std::vector<sf::Vector2f>> predefinedPaths = {
+        // Chemin original
+        {
+            sf::Vector2f(0, 300),
+            sf::Vector2f(200, 300),
+            sf::Vector2f(200, 150),
+            sf::Vector2f(500, 150),
+            sf::Vector2f(500, 450),
+            sf::Vector2f(800, 450),
+            sf::Vector2f(800, 250),
+            sf::Vector2f(1000, 250)
+        },
+        // Chemin en zigzag
+        {
+            sf::Vector2f(0, 200),
+            sf::Vector2f(200, 200),
+            sf::Vector2f(200, 400),
+            sf::Vector2f(400, 400),
+            sf::Vector2f(400, 200),
+            sf::Vector2f(600, 200),
+            sf::Vector2f(600, 400),
+            sf::Vector2f(800, 400),
+            sf::Vector2f(800, 200),
+            sf::Vector2f(1000, 200)
+        },
+        // Chemin en spirale
+        {
+            sf::Vector2f(0, 350),
+            sf::Vector2f(200, 350),
+            sf::Vector2f(200, 150),
+            sf::Vector2f(400, 150),
+            sf::Vector2f(400, 350),
+            sf::Vector2f(600, 350),
+            sf::Vector2f(600, 150),
+            sf::Vector2f(800, 150),
+            sf::Vector2f(800, 350),
+            sf::Vector2f(1000, 350)
+        },
+        // Chemin en S
+        {
+            sf::Vector2f(0, 100),
+            sf::Vector2f(200, 100),
+            sf::Vector2f(200, 300),
+            sf::Vector2f(400, 300),
+            sf::Vector2f(400, 500),
+            sf::Vector2f(600, 500),
+            sf::Vector2f(600, 300),
+            sf::Vector2f(800, 300),
+            sf::Vector2f(800, 100),
+            sf::Vector2f(1000, 100)
+        }
+    };
+
+    void changePath() {
+        // Sélectionner un chemin aléatoire différent du précédent
+        int newPathIndex;
+        do {
+            newPathIndex = rand() % predefinedPaths.size();
+        } while (predefinedPaths[newPathIndex] == path);
+        
+        path = predefinedPaths[newPathIndex];
+        std::cout << "=== NEW PATH SELECTED FOR LEVEL " << level << " ===" << std::endl;
+    }
+
+    void saveScore() {
+        try {
+            json scores;
+            std::ifstream file("scores.json");
+            if (file.is_open()) {
+                file >> scores;
+                file.close();
+            }
+            
+            if (!scores.is_array()) {
+                scores = json::array();
+            }
+            
+            json newScore = {
+                {"name", playerName},
+                {"score", score},
+                {"level", level},
+                {"wave", wave},
+                {"date", std::time(nullptr)}
+            };
+            
+            scores.push_back(newScore);
+            
+            std::ofstream outFile("scores.json");
+            outFile << scores.dump(4);
+            outFile.close();
+            
+            std::cout << "Score sauvegardé avec succès!" << std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "Erreur lors de la sauvegarde du score: " << e.what() << std::endl;
+        }
+    }
+    
+    void resetGame() {
+        gold = 200;
+        lives = 3;
+        wave = 1;
+        level = 1;
+        score = 0;
+        enemies.clear();
+        towers.clear();
+        projectiles.clear();
+        gameOver = false;
+        showReplayOption = false;
+        showSaveOption = false;
+        waitingForName = false;
+        playerName = "";
+        path = predefinedPaths[0];
+    }
 
 public:
     Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Tower Defense "),
-             gold(200), lives(20), wave(1), enemySpawnTimer(0), 
-             enemiesInWave(5), enemiesSpawned(0), waveActive(false), score(0) {
+             gold(200), lives(3), wave(1), level(1), enemySpawnTimer(0), 
+             enemiesInWave(5), enemiesSpawned(0), waveActive(false), score(0),
+             gameOver(false), showReplayOption(false), showSaveOption(false),
+             waitingForName(false), playerName("") {
+        
+        // Initialiser le générateur de nombres aléatoires
+        srand(time(nullptr));
         
         std::cout << "=== TOWER DEFENSE ===" << std::endl;
         std::cout << "✓ Factory Pattern: Enemy creation" << std::endl;
@@ -636,16 +815,9 @@ public:
         
         // Subscribe to its own events
         addObserver(this);
-            
-        // Create path
-        path.push_back(sf::Vector2f(0, 300));
-        path.push_back(sf::Vector2f(200, 300));
-        path.push_back(sf::Vector2f(200, 150));
-        path.push_back(sf::Vector2f(500, 150));
-        path.push_back(sf::Vector2f(500, 450));
-        path.push_back(sf::Vector2f(800, 450));
-        path.push_back(sf::Vector2f(800, 250));
-        path.push_back(sf::Vector2f(1000, 250));
+        
+        // Initialiser le premier chemin
+        path = predefinedPaths[0];
         
         std::cout << "CONTROLS:" << std::endl;
         std::cout << "- Left click: Place tower (50 gold)" << std::endl;
@@ -700,9 +872,29 @@ public:
                 window.close();
             }
             
+            if (event.type == sf::Event::TextEntered && waitingForName) {
+                if (event.text.unicode == '\b' && !playerName.empty()) {
+                    playerName.pop_back();
+                }
+                else if (event.text.unicode < 128 && playerName.length() < 20) {
+                    playerName += static_cast<char>(event.text.unicode);
+                }
+            }
+            
             if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Space && !waveActive) {
+                if (event.key.code == sf::Keyboard::Return && waitingForName) {
+                    waitingForName = false;
+                    showSaveOption = true;
+                }
+                else if (event.key.code == sf::Keyboard::Space && !waveActive && !gameOver) {
                     startWave();
+                }
+                else if (event.key.code == sf::Keyboard::R && gameOver) {
+                    resetGame();
+                }
+                else if (event.key.code == sf::Keyboard::S && showSaveOption) {
+                    saveScore();
+                    showSaveOption = false;
                 }
             }
             
@@ -781,17 +973,34 @@ public:
         waveActive = true;
         enemiesSpawned = 0;
         enemySpawnTimer = 0;
-        std::cout << "=== WAVE " << wave << " STARTS ===" << std::endl;
+        std::cout << "=== LEVEL " << level << " - WAVE " << wave << " STARTS ===" << std::endl;
     }
 
     void update(float deltaTime) {
+        if (gameOver) return;
+        
         // Spawn enemies with Factory Pattern
         if (waveActive && enemiesSpawned < enemiesInWave) {
             enemySpawnTimer += deltaTime;
             if (enemySpawnTimer >= 1.0f) {
-                // Using Factory Pattern
-                EnemyFactory::EnemyType type = EnemyFactory::getEnemyTypeForWave(wave, enemiesSpawned);
+                // Using Factory Pattern with level-based difficulty
+                EnemyFactory::EnemyType type = EnemyFactory::getEnemyTypeForWave(wave, level, enemiesSpawned);
                 auto enemy = EnemyFactory::createEnemy(type);
+                
+                // Définir la position initiale au début du chemin
+                enemy->position = path[0];
+                
+                // Augmenter les statistiques des ennemis en fonction du niveau et de la vague
+                float levelMultiplier = 1.0f + (level - 1) * 0.15f;  // Réduit à +15% par niveau
+                float waveMultiplier = 1.0f + (wave - 1) * 0.05f;    // Réduit à +5% par vague
+                float totalMultiplier = levelMultiplier * waveMultiplier;
+                
+                // Appliquer les multiplicateurs aux statistiques
+                enemy->health = static_cast<int>(enemy->health * totalMultiplier);
+                enemy->maxHealth = enemy->health;
+                enemy->speed = enemy->speed * (1.0f + (level - 1) * 0.03f + (wave - 1) * 0.01f);  // Réduit les bonus de vitesse
+                enemy->reward = static_cast<int>(enemy->reward * (1.0f + (level - 1) * 0.1f + (wave - 1) * 0.05f));  // Réduit les bonus de récompense
+                
                 enemies.push_back(std::move(enemy));
                 
                 enemiesSpawned++;
@@ -841,8 +1050,31 @@ public:
             waveActive = false;
             notifyObservers(GameEvent(GameEvent::WAVE_COMPLETED));
             wave++;
-            enemiesInWave += 2;
-            std::cout << "Press SPACE for wave " << wave << std::endl;
+            
+            // Changer de niveau après 3 vagues
+            if (wave > 3) {
+                level++;
+                wave = 1;
+                enemiesInWave = 5 + (level - 1) * 2;  // Plus d'ennemis par vague à chaque niveau
+                gold += 100 * level;  // Bonus d'or à chaque niveau
+                
+                // Changer le chemin et supprimer les tours
+                changePath();
+                towers.clear();
+                
+                std::cout << "=== LEVEL " << level << " STARTED ===" << std::endl;
+                std::cout << "New path selected - Towers have been removed" << std::endl;
+            } else {
+                enemiesInWave += 2;
+            }
+            std::cout << "Press SPACE for level " << level << " wave " << wave << std::endl;
+        }
+
+        // Check for game over
+        if (lives <= 0) {
+            gameOver = true;
+            showReplayOption = true;
+            waitingForName = true;
         }
     }
 
@@ -933,7 +1165,7 @@ public:
 
         // Wave interface with sprite and text (using Arial font)
         resourceManager.drawWaveIcon(window, 10, 70);
-        drawText(window, "Wave: " + intToString(wave), 40, 75, sf::Color::Cyan, 16);
+        drawText(window, "Level: " + intToString(level) + " Wave: " + intToString(wave), 40, 75, sf::Color::Cyan, 16);
 
         // Score interface with sprite and text (using Arial font)
         resourceManager.drawScoreIcon(window, 10, 100);
@@ -944,7 +1176,7 @@ public:
         drawText(window, "Enemies: " + intToString(enemies.size()), 10, 150, sf::Color::Red, 14);
 
         // "PRESS SPACE TO START" text at center of screen (large, visible text)
-        if (!waveActive && wave <= 10 && lives > 0) {
+        if (!waveActive && lives > 0) {
             // Semi-transparent background for text
             sf::RectangleShape textBg(sf::Vector2f(500, 80));
             textBg.setPosition(WINDOW_WIDTH/2 - 250, WINDOW_HEIGHT/2 - 40);
@@ -955,30 +1187,41 @@ public:
             
             // Large, bold text for better visibility
             drawText(window, "PRESS SPACE", WINDOW_WIDTH/2 - 120, WINDOW_HEIGHT/2 - 25, sf::Color::Green, 32);
-            drawText(window, "TO START WAVE " + intToString(wave), WINDOW_WIDTH/2 - 140, WINDOW_HEIGHT/2 + 10, sf::Color::Green, 22);
+            drawText(window, "TO START LEVEL " + intToString(level) + " WAVE " + intToString(wave), 
+                    WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 + 10, sf::Color::Green, 22);
+            
+            // Afficher un message si c'est un nouveau niveau
+            if (wave == 1) {
+                drawText(window, "NEW PATH - PLACE YOUR TOWERS!", 
+                        WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 + 40, sf::Color::Yellow, 20);
+            }
         }
 
-        // End game messages with better visibility
-        if (wave > 10) {
-            sf::RectangleShape winBg(sf::Vector2f(400, 80));
-            winBg.setPosition(WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 - 40);
-            winBg.setFillColor(sf::Color(0, 100, 0, 180));
-            winBg.setOutlineColor(sf::Color::Yellow);
-            winBg.setOutlineThickness(3);
-            window.draw(winBg);
-            drawText(window, "VICTORY!", WINDOW_WIDTH/2 - 80, WINDOW_HEIGHT/2 - 25, sf::Color::Yellow, 32);
-            drawText(window, "Final Score: " + intToString(score), WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 10, sf::Color::Yellow, 20);
-        }
-
-        if (lives <= 0) {
-            sf::RectangleShape gameOverBg(sf::Vector2f(400, 80));
-            gameOverBg.setPosition(WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 - 40);
+        // Game over screen
+        if (gameOver) {
+            sf::RectangleShape gameOverBg(sf::Vector2f(400, 200));
+            gameOverBg.setPosition(WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 - 100);
             gameOverBg.setFillColor(sf::Color(100, 0, 0, 180));
             gameOverBg.setOutlineColor(sf::Color::White);
             gameOverBg.setOutlineThickness(3);
             window.draw(gameOverBg);
-            drawText(window, "GAME OVER!", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 - 25, sf::Color::White, 32);
-            drawText(window, "Final Score: " + intToString(score), WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 10, sf::Color::White, 20);
+            
+            drawText(window, "GAME OVER!", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 - 80, sf::Color::White, 32);
+            drawText(window, "Final Score: " + intToString(score), WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 - 40, sf::Color::White, 20);
+            
+            if (waitingForName) {
+                drawText(window, "Entrez votre nom:", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2, sf::Color::White, 20);
+                drawText(window, playerName + "|", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 30, sf::Color::Yellow, 20);
+                drawText(window, "Appuyez sur Entrée pour continuer", WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2 + 60, sf::Color::White, 16);
+            }
+            else if (showSaveOption) {
+                drawText(window, "Voulez-vous sauvegarder votre score?", WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2, sf::Color::White, 20);
+                drawText(window, "Appuyez sur S pour sauvegarder", WINDOW_WIDTH/2 - 120, WINDOW_HEIGHT/2 + 30, sf::Color::Green, 16);
+                drawText(window, "Appuyez sur R pour rejouer", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 60, sf::Color::Yellow, 16);
+            }
+            else if (showReplayOption) {
+                drawText(window, "Appuyez sur R pour rejouer", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 30, sf::Color::Yellow, 20);
+            }
         }
 
         // Instructions at bottom of screen (clear and readable)
