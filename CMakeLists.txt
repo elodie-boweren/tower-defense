@@ -258,6 +258,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     endif()
 endif()
 
+# Créer le répertoire bin s'il n'existe pas
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # Définir le répertoire de sortie
 set_target_properties(tower_defense PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin

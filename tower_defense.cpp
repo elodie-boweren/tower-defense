@@ -99,7 +99,6 @@ public:
             // Check if file exists first
             struct stat info;
             if (stat(path.c_str(), &info) == 0) {
-                std::cout << "  -> Font file found, attempting to load..." << std::endl;
                 if (arialFont.loadFromFile(path)) {
                     fontLoaded = true;
                     std::cout << "✓ Font successfully loaded from: " << path << std::endl;
@@ -127,10 +126,7 @@ public:
         return fontLoaded;
     }
     
-    void loadResources() {
-        // Display current working directory for debug
-        std::cout << "=== DEBUG WSL PATHS ===" << std::endl;
-        
+    void loadResources() {   
         // Display current working directory
         char cwd[1024];
         if (getcwd(cwd, sizeof(cwd)) != nullptr) {
@@ -1016,7 +1012,7 @@ public:
                 
                 // New tower placement
                 if (!towerClicked) {
-                    int cost = TowerFactory::getTowerCost(selectedTowerType);
+                    int cost = 50;
                     if (gold >= cost) {
                         bool canPlace = true;
                         
@@ -1061,7 +1057,7 @@ public:
                         }
                         
                         if (canPlace) {
-                            auto tower = TowerFactory::createTower(selectedTowerType, clickPos);
+                            auto tower = TowerFactory::createTower(TowerType::BASIC, clickPos);
                             towers.push_back(std::move(tower));
                             gold -= cost;
                             std::cout << "Tower placed! Remaining gold: " << gold << std::endl;
