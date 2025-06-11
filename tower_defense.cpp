@@ -211,30 +211,14 @@ public:
         if (goldLoaded) {
             goldSprite.setPosition(x, y);
             window.draw(goldSprite);
-        } else {
-            // Fallback: more visible yellow circle
-            sf::CircleShape fallback(12);
-            fallback.setPosition(x, y);
-            fallback.setFillColor(sf::Color::Yellow);
-            fallback.setOutlineColor(sf::Color::Black);
-            fallback.setOutlineThickness(1);
-            window.draw(fallback);
-        }
+        } 
     }
     
     void drawHeartIcon(sf::RenderWindow& window, float x, float y) {
         if (heartLoaded) {
             heartSprite.setPosition(x, y);
             window.draw(heartSprite);
-        } else {
-            // Fallback: simplified heart
-            sf::CircleShape fallback(12);
-            fallback.setPosition(x, y);
-            fallback.setFillColor(sf::Color::Red);
-            fallback.setOutlineColor(sf::Color::White);
-            fallback.setOutlineThickness(1);
-            window.draw(fallback);
-        }
+        } 
     }
 };
 
@@ -916,7 +900,6 @@ public:
         path = predefinedPaths[0];
         
         std::cout << "CONTROLS:" << std::endl;
-        std::cout << "- Keys 1-4: Select tower type" << std::endl;
         std::cout << "- Left click: Place tower" << std::endl;
         std::cout << "- Click on tower: Upgrade" << std::endl;
         std::cout << "- Press SPACE to start wave" << std::endl;
@@ -1265,15 +1248,18 @@ public:
         resourceManager.drawHeartIcon(window, 10, 40);
         drawText(window, intToString(lives), 40, 45, sf::Color::Red, 18);
 
-        // Wave interface with text (using Arial font)
-        drawText(window, "Wave: " + intToString(wave), 10, 75, sf::Color::Cyan, 16);
+        // Level interface with text (using Arial font)
+        drawText(window, "Level : " + intToString(level), 300, 15, sf::Color::White, 18);
 
-        // Score interface with text (using Arial font)
-        drawText(window, "Score: " + intToString(score), 10, 105, sf::Color::White, 16);
+        // Wave interface with text (using Arial font)
+        drawText(window, "Wave : " + intToString(wave), 300, 45, sf::Color::Cyan, 18);
 
         // Additional game information
-        drawText(window, "Towers: " + intToString(towers.size()), 10, 135, sf::Color::Blue, 16);
-        drawText(window, "Enemies: " + intToString(enemies.size()), 10, 165, sf::Color::Red, 16);
+        drawText(window, "Towers : " + intToString(towers.size()), 600, 15, sf::Color::Blue, 18);
+        drawText(window, "Enemies : " + intToString(enemies.size()), 600, 45, sf::Color::Red, 18);
+
+        // Score interface with text (using Arial font)
+        drawText(window, "Score : " + intToString(score), 850, 15, sf::Color::White, 18);
 
         // "PRESS SPACE TO START" text at center of screen (large, visible text)
         if (!waveActive && lives > 0) {
