@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/laura/tower-defense
+CMAKE_SOURCE_DIR = "/home/elodie/C - C++/Tower Defense/tower-defense GRID"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/laura/tower-defense/build
+CMAKE_BINARY_DIR = "/home/elodie/C - C++/Tower Defense/tower-defense GRID/build"
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -82,14 +82,14 @@ clean: CMakeFiles/clean-all.dir/clean
 CMakeFiles/tower_defense.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tower_defense.dir/build.make CMakeFiles/tower_defense.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tower_defense.dir/build.make CMakeFiles/tower_defense.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/laura/tower-defense/build/CMakeFiles --progress-num=2,3 "Built target tower_defense"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/home/elodie/C - C++/Tower Defense/tower-defense GRID/build/CMakeFiles" --progress-num=2,3 "Built target tower_defense"
 .PHONY : CMakeFiles/tower_defense.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/tower_defense.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/laura/tower-defense/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/elodie/C - C++/Tower Defense/tower-defense GRID/build/CMakeFiles" 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/tower_defense.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/laura/tower-defense/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/elodie/C - C++/Tower Defense/tower-defense GRID/build/CMakeFiles" 0
 .PHONY : CMakeFiles/tower_defense.dir/rule
 
 # Convenience name for target.
@@ -108,14 +108,14 @@ CMakeFiles/tower_defense.dir/clean:
 CMakeFiles/clean-all.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/clean-all.dir/build.make CMakeFiles/clean-all.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/clean-all.dir/build.make CMakeFiles/clean-all.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/laura/tower-defense/build/CMakeFiles --progress-num=1 "Built target clean-all"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/home/elodie/C - C++/Tower Defense/tower-defense GRID/build/CMakeFiles" --progress-num=1 "Built target clean-all"
 .PHONY : CMakeFiles/clean-all.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/clean-all.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/laura/tower-defense/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/elodie/C - C++/Tower Defense/tower-defense GRID/build/CMakeFiles" 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/clean-all.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/laura/tower-defense/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/elodie/C - C++/Tower Defense/tower-defense GRID/build/CMakeFiles" 0
 .PHONY : CMakeFiles/clean-all.dir/rule
 
 # Convenience name for target.

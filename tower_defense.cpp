@@ -752,15 +752,16 @@ private:
         try {
             json scores;
             std::ifstream file("scores.json");
-            if (file.is_open()) {
-                file >> scores;
-                file.close();
-            }
-            
-            if (!scores.is_array()) {
-                scores = json::array();
-            }
-            
+        if (file.good()) {
+            // file exists, read it
+            file >> scores;
+            file.close();
+        } else {
+            // File doesn't exist, create empty array
+            scores = json::array();
+            std::cout << "Creating file scores.json" << std::endl;
+        }
+            // Add new score
             json newScore = {
                 {"name", playerName},
                 {"score", score},

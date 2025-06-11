@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/elodie/C - C++/Tower Defense/tower-defense GRID/build",
+  "command": "/usr/bin/c++ -DDEBUG  -g -std=gnu++17 -Wall -Wextra -Wno-unused-parameter -g -O0 -o CMakeFiles/tower_defense.dir/tower_defense.cpp.o -c \"/home/elodie/C - C++/Tower Defense/tower-defense GRID/tower_defense.cpp\"",
+  "file": "/home/elodie/C - C++/Tower Defense/tower-defense GRID/tower_defense.cpp",
+  "output": "CMakeFiles/tower_defense.dir/tower_defense.cpp.o"
+}
+]
