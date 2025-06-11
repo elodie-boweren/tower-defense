@@ -155,7 +155,7 @@ public:
         
         // Loading gold icon
         bool goldFound = false;
-        for (const auto& basePath : pathsToTry) {
+        for (const std::string& basePath : pathsToTry) {
             std::string fullPath = basePath + "gold_icon.png";
             std::cout << "Attempt: " << fullPath << std::endl;
             
@@ -182,7 +182,7 @@ public:
         
         // Loading heart icon
         bool heartFound = false;
-        for (const auto& basePath : pathsToTry) {
+        for (const std::string& basePath : pathsToTry) {
             std::string fullPath = basePath + "heart_icon.png";
         if (stat(fullPath.c_str(), &info) == 0) {
             std::cout << "  -> File found, attempting to load..." << std::endl;
@@ -315,25 +315,6 @@ public:
     }
 };
 
-class Troll : public Enemy {
-public:
-    Troll() : Enemy(300, 35, 50, "Troll") {}
-    
-    sf::Color getColor() override {
-        return sf::Color::Magenta;
-    }
-};
-
-// Nouveaux types d'ennemis
-class HeavyEnemy : public Enemy {
-public:
-    HeavyEnemy() : Enemy(400, 30, 60, "Heavy") {}
-    
-    sf::Color getColor() override {
-        return sf::Color(139, 69, 19); // Marron
-    }
-};
-
 class MediumEnemy : public Enemy {
 public:
     MediumEnemy() : Enemy(200, 45, 35, "Medium") {}
@@ -343,11 +324,30 @@ public:
     }
 };
 
+class Troll : public Enemy {
+public:
+    Troll() : Enemy(300, 35, 50, "Troll") {}
+    
+    sf::Color getColor() override {
+        return sf::Color::Magenta;
+    }
+};
+
+class HeavyEnemy : public Enemy {
+public:
+    HeavyEnemy() : Enemy(400, 30, 60, "Heavy") {}
+    
+    sf::Color getColor() override {
+        return sf::Color(139, 69, 19); // Brown
+    }
+};
+
 // Factory to create enemies
 class EnemyFactory {
 public:
-    enum EnemyType { GOBLIN, ORC, TROLL, HEAVY, MEDIUM };
+    enum EnemyType { GOBLIN, ORC, MEDIUM, TROLL, HEAVY };
     
+    // Creation of enemies per type
     static std::unique_ptr<Enemy> createEnemy(EnemyType type) {
         switch(type) {
             case GOBLIN:
@@ -370,6 +370,7 @@ public:
         }
     }
     
+    // Create assortment of enemies based with difficulty increasing per level
     static EnemyType getEnemyTypeForWave(int wave, int level, int enemyIndex) {
         int totalDifficulty = wave + (level - 1) * 3;
         
@@ -516,7 +517,6 @@ protected:
 
 public:
     virtual ~Tower() = default;
-
     virtual void update(float deltaTime, std::vector<std::unique_ptr<Enemy>>& enemies, std::vector<Projectile>& projectiles, Subject* subject) {
         timeSinceLastAttack += deltaTime;
         
@@ -524,7 +524,7 @@ public:
             Enemy* target = nullptr;
             float closestDistance = range + 1;
             
-            for (auto& enemy : enemies) {
+            for (std::unique_ptr<Enemy>& enemy : enemies) {
                 if (!enemy->alive) continue;
                 
                 float distance = sqrt(pow(enemy->position.x - position.x, 2) + pow(enemy->position.y - position.y, 2));
@@ -535,14 +535,13 @@ public:
             }
             
             if (target) {
-                // Create a projectile instead of attacking directly
+                // Create a projectile to attack enemy
                 projectiles.push_back(Projectile(position, target, damage, subject));
                 timeSinceLastAttack = 0;
-                std::cout << towerType << " Tower shoots at " << target->type << "!" << std::endl;
             }
         }
     }
-
+    // Tower attack increases with the levels
     virtual void upgrade() {
         if (level == 1) {
             level = 2;
@@ -761,9 +760,9 @@ private:
     std::string playerName;
     bool waitingForName;
     
-    // Chemins prédéfinis
+    // Preset paths
     const std::vector<std::vector<sf::Vector2f>> predefinedPaths = {
-        // Chemin original
+        // Original path
         {
             sf::Vector2f(0, 300),
             sf::Vector2f(200, 300),
@@ -774,7 +773,7 @@ private:
             sf::Vector2f(800, 250),
             sf::Vector2f(1000, 250)
         },
-        // Chemin en zigzag
+        // Zigzag path
         {
             sf::Vector2f(0, 200),
             sf::Vector2f(200, 200),
@@ -787,7 +786,7 @@ private:
             sf::Vector2f(800, 200),
             sf::Vector2f(1000, 200)
         },
-        // Chemin en spirale
+        // Curly path
         {
             sf::Vector2f(0, 350),
             sf::Vector2f(200, 350),
@@ -800,7 +799,7 @@ private:
             sf::Vector2f(800, 350),
             sf::Vector2f(1000, 350)
         },
-        // Chemin en S
+        // S path
         {
             sf::Vector2f(0, 100),
             sf::Vector2f(200, 100),
@@ -816,7 +815,7 @@ private:
     };
 
     void changePath() {
-        // Sélectionner un chemin aléatoire différent du précédent
+        // Select a path different from the previous randomly
         int newPathIndex;
         do {
             newPathIndex = rand() % predefinedPaths.size();
@@ -831,7 +830,7 @@ private:
             json scores;
             std::ifstream file("scores.json");
         if (file.good()) {
-            // file exists, read it
+            // File exists, read it
             file >> scores;
             file.close();
         } else {
@@ -884,7 +883,7 @@ public:
              gameOver(false), showReplayOption(false), showSaveOption(false),
              waitingForName(false), playerName("") {
         
-        // Initialiser le générateur de nombres aléatoires
+        // Initialize the random number generator 
         srand(time(nullptr));
         
         std::cout << "=== TOWER DEFENSE ===" << std::endl;
@@ -896,7 +895,7 @@ public:
         // Subscribe to its own events
         addObserver(this);
         
-        // Initialiser le premier chemin
+        // Initialize the first path
         path = predefinedPaths[0];
         
         std::cout << "CONTROLS:" << std::endl;
@@ -982,7 +981,7 @@ public:
                 
                 // Check click on existing tower
                 bool towerClicked = false;
-                for (auto& tower : towers) {
+                for (std::unique_ptr<Tower>& tower : towers) {
                     float distance = sqrt(pow(clickPos.x - tower->position.x, 2) + pow(clickPos.y - tower->position.y, 2));
                     if (distance <= 20 && tower->canUpgrade() && gold >= tower->getUpgradeCost()) {
                         gold -= tower->getUpgradeCost();
@@ -1000,7 +999,7 @@ public:
                         bool canPlace = true;
                         
                         // Check distance with other towers
-                        for (const auto& tower : towers) {
+                        for (const std::unique_ptr<Tower>& tower : towers) {
                             float distance = sqrt(pow(clickPos.x - tower->position.x, 2) + pow(clickPos.y - tower->position.y, 2));
                             if (distance < TOWER_MIN_DISTANCE) {
                                 canPlace = false;
@@ -1040,7 +1039,7 @@ public:
                         }
                         
                         if (canPlace) {
-                            auto tower = TowerFactory::createTower(TowerType::BASIC, clickPos);
+                            std::unique_ptr<Tower> tower = TowerFactory::createTower(TowerType::BASIC, clickPos);
                             towers.push_back(std::move(tower));
                             gold -= cost;
                             std::cout << "Tower placed! Remaining gold: " << gold << std::endl;
@@ -1070,21 +1069,21 @@ public:
             if (enemySpawnTimer >= 1.0f) {
                 // Using Factory Pattern with level-based difficulty
                 EnemyFactory::EnemyType type = EnemyFactory::getEnemyTypeForWave(wave, level, enemiesSpawned);
-                auto enemy = EnemyFactory::createEnemy(type);
+                std::unique_ptr<Enemy> enemy = EnemyFactory::createEnemy(type);
                 
-                // Définir la position initiale au début du chemin
+                // Define initial position at beginning of path
                 enemy->position = path[0];
                 
-                // Augmenter les statistiques des ennemis en fonction du niveau et de la vague
-                float levelMultiplier = 1.0f + (level - 1) * 0.15f;  // Réduit à +15% par niveau
-                float waveMultiplier = 1.0f + (wave - 1) * 0.05f;    // Réduit à +5% par vague
+                // Increase enemy statistics based on the level and the wave
+                float levelMultiplier = 1.0f + (level - 1) * 0.15f;  // Increase by 15% per level
+                float waveMultiplier = 1.0f + (wave - 1) * 0.05f;    // Increase by 5% per wave
                 float totalMultiplier = levelMultiplier * waveMultiplier;
                 
-                // Appliquer les multiplicateurs aux statistiques
+                // Apply multipliers to other stats
                 enemy->health = static_cast<int>(enemy->health * totalMultiplier);
                 enemy->maxHealth = enemy->health;
-                enemy->speed = enemy->speed * (1.0f + (level - 1) * 0.03f + (wave - 1) * 0.01f);  // Réduit les bonus de vitesse
-                enemy->reward = static_cast<int>(enemy->reward * (1.0f + (level - 1) * 0.1f + (wave - 1) * 0.05f));  // Réduit les bonus de récompense
+                enemy->speed = enemy->speed * (1.0f + (level - 1) * 0.03f + (wave - 1) * 0.01f);  // Reduce speed bonus
+                enemy->reward = static_cast<int>(enemy->reward * (1.0f + (level - 1) * 0.1f + (wave - 1) * 0.05f));  // Reduce reward bonus 
                 
                 enemies.push_back(std::move(enemy));
                 
@@ -1094,7 +1093,7 @@ public:
         }
 
         // Update enemies
-        for (auto& enemy : enemies) {
+        for (std::unique_ptr<Enemy>& enemy : enemies) {
             if (enemy->alive) {
                 enemy->update(deltaTime, path);
                 
@@ -1107,12 +1106,12 @@ public:
         }
 
         // Update towers (now they create projectiles)
-        for (auto& tower : towers) {
+        for (std::unique_ptr<Tower>& tower : towers) {
             tower->update(deltaTime, enemies, projectiles, this);
         }
 
         // Update projectiles
-        for (auto& projectile : projectiles) {
+        for (Projectile& projectile : projectiles) {
             projectile.update(deltaTime);
         }
 
@@ -1136,14 +1135,14 @@ public:
             notifyObservers(GameEvent(GameEvent::WAVE_COMPLETED));
             wave++;
             
-            // Changer de niveau après 3 vagues
+            // Change the level after 3 waves
             if (wave > 3) {
                 level++;
                 wave = 1;
-                enemiesInWave = 5 + (level - 1) * 2;  // Plus d'ennemis par vague à chaque niveau
-                gold += 100 * level;  // Bonus d'or à chaque niveau
+                enemiesInWave = 5 + (level - 1) * 2;  // More enemies per wave at each level
+                gold += 100 * level;  // Gold bonus for each level
                 
-                // Changer le chemin et supprimer les tours
+                // Change the path and remove towers
                 changePath();
                 towers.clear();
                 
@@ -1212,7 +1211,7 @@ public:
         }
 
         // Path points
-        for (const auto& point : path) {
+        for (const sf::Vector2f& point : path) {
             sf::CircleShape dot(3);
             dot.setPosition(point.x - 3, point.y - 3);
             dot.setFillColor(sf::Color::Yellow);
@@ -1220,17 +1219,17 @@ public:
         }
 
         // Draw towers
-        for (auto& tower : towers) {
+        for (std::unique_ptr<Tower>& tower : towers) {
             tower->draw(window);
         }
 
         // Draw projectiles
-        for (auto& projectile : projectiles) {
+        for (Projectile& projectile : projectiles) {
             projectile.draw(window);
         }
 
         // Draw enemies (on top of projectiles)
-        for (auto& enemy : enemies) {
+        for (std::unique_ptr<Enemy>& enemy : enemies) {
             if (enemy->alive) {
                 enemy->draw(window);
             }
@@ -1276,7 +1275,7 @@ public:
             drawText(window, "TO START LEVEL " + intToString(level) + " WAVE " + intToString(wave), 
                     WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 + 10, sf::Color::Green, 22);
             
-            // Afficher un message si c'est un nouveau niveau
+            // Display message for each new level
             if (wave == 1) {
                 drawText(window, "NEW PATH - PLACE YOUR TOWERS!", 
                         WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 + 40, sf::Color::Yellow, 20);
@@ -1296,17 +1295,17 @@ public:
             drawText(window, "Final Score: " + intToString(score), WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 - 40, sf::Color::White, 20);
             
             if (waitingForName) {
-                drawText(window, "Entrez votre nom:", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2, sf::Color::White, 20);
+                drawText(window, "Enter your name :", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2, sf::Color::White, 20);
                 drawText(window, playerName + "|", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 30, sf::Color::Yellow, 20);
-                drawText(window, "Appuyez sur Entrée pour continuer", WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2 + 60, sf::Color::White, 16);
+                drawText(window, "Press Enter to continue", WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2 + 60, sf::Color::White, 16);
             }
             else if (showSaveOption) {
-                drawText(window, "Voulez-vous sauvegarder votre score?", WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2, sf::Color::White, 20);
-                drawText(window, "Appuyez sur S pour sauvegarder", WINDOW_WIDTH/2 - 120, WINDOW_HEIGHT/2 + 30, sf::Color::Green, 16);
-                drawText(window, "Appuyez sur R pour rejouer", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 60, sf::Color::Yellow, 16);
+                drawText(window, "Save score?", WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2, sf::Color::White, 20);
+                drawText(window, "Press S to save", WINDOW_WIDTH/2 - 120, WINDOW_HEIGHT/2 + 30, sf::Color::Green, 16);
+                drawText(window, "Press R to play again", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 60, sf::Color::Yellow, 16);
             }
             else if (showReplayOption) {
-                drawText(window, "Appuyez sur R pour rejouer", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 30, sf::Color::Yellow, 20);
+                drawText(window, "Press R to play again", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 30, sf::Color::Yellow, 20);
             }
         }
 
