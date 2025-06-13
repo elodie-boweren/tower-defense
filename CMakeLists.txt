@@ -287,29 +287,11 @@ add_custom_target(clean-all
     COMMENT "Nettoyage complet du projet"
 )
 
-# Ajouter ces lignes à la fin de votre CMakeLists.txt
-
-# Copier les assets vers le répertoire de build
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../assets")
-    message(STATUS "Copie des assets depuis le répertoire parent")
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/../assets" 
-         DESTINATION "${CMAKE_BINARY_DIR}")
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/../assets" 
-         DESTINATION "${CMAKE_BINARY_DIR}/bin")
-elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
-    message(STATUS "Copie des assets depuis le répertoire du projet")
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets" 
-         DESTINATION "${CMAKE_BINARY_DIR}")
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets" 
-         DESTINATION "${CMAKE_BINARY_DIR}/bin")
-else()
-    message(WARNING "Dossier assets non trouvé")
-endif()
-
-# Alternative: créer une cible personnalisée pour copier les assets
-add_custom_target(copy_assets ALL
+# Copie des assets
+add_custom_command(
+    TARGET tower_defense POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/../assets"
-        "${CMAKE_BINARY_DIR}/bin/assets"
+    "${CMAKE_SOURCE_DIR}/assets"
+    "${CMAKE_BINARY_DIR}/bin/assets"
     COMMENT "Copie des assets vers le répertoire de build"
 )
