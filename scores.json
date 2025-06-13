@@ -19,5 +19,33 @@
         "name": "Elodie",
         "score": 50030,
         "wave": 1
+    },
+    {
+        "date": 1749806040,
+        "level": 2,
+        "name": "Elo",
+        "score": 2990,
+        "wave": 2
+    },
+    {
+        "date": 1749806102,
+        "level": 1,
+        "name": "Blu",
+        "score": 250,
+        "wave": 1
+    },
+    {
+        "date": 1749806774,
+        "level": 1,
+        "name": "Halo",
+        "score": 650,
+        "wave": 2
+    },
+    {
+        "date": 1749806935,
+        "level": 1,
+        "name": "lalala",
+        "score": 1520,
+        "wave": 3
     }
 ]
