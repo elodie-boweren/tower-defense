@@ -19,8 +19,9 @@ using json = nlohmann::json;
 const int WINDOW_WIDTH = 1000;
 const int WINDOW_HEIGHT = 700;
 const float TOWER_MIN_DISTANCE = 80.0f;
+const float AUTO_START_TIMER = 15.0f; // New timer for automatic start
 
-// Structure pour représenter un score dans le Hall of Fame
+// Structure to represent a score in the Hall of Fame
 struct ScoreEntry {
     std::string name;
     int score;
@@ -33,7 +34,7 @@ struct ScoreEntry {
 };
 
 // ===========================================
-// AUDIO MANAGER - Gestion de la musique et des sons
+// AUDIO MANAGER - Music and sound management
 // ===========================================
 class AudioManager {
 private:
@@ -63,9 +64,9 @@ public:
     }
     
     void loadAudioFiles() {
-        std::cout << "=== CHARGEMENT DES FICHIERS AUDIO ===" << std::endl;
+        std::cout << "=== LOADING AUDIO FILES ===" << std::endl;
         
-        // Chemins à essayer pour les fichiers audio
+        // Paths to try for audio files
         std::vector<std::string> audioPaths = {
             "./assets/",
             "assets/",
@@ -74,7 +75,7 @@ public:
             "./"
         };
         
-        // Chargement des musiques de fond
+        // Loading background music
         for (const std::string& basePath : audioPaths) {
             if (!music1Loaded) {
                 std::string music1Path = basePath + "background_music1.ogg";
@@ -82,7 +83,7 @@ public:
                     music1Loaded = true;
                     backgroundMusic1.setLoop(true);
                     backgroundMusic1.setVolume(musicVolume);
-                    std::cout << "✓ Musique 1 chargée: " << music1Path << std::endl;
+                    std::cout << "✓ Music 1 loaded: " << music1Path << std::endl;
                 }
             }
             
@@ -92,11 +93,11 @@ public:
                     music2Loaded = true;
                     backgroundMusic2.setLoop(true);
                     backgroundMusic2.setVolume(musicVolume);
-                    std::cout << "✓ Musique 2 chargée: " << music2Path << std::endl;
+                    std::cout << "✓ Music 2 loaded: " << music2Path << std::endl;
                 }
             }
             
-            // Chargement des effets sonores
+            // Loading sound effects
             if (!soundsLoaded) {
                 std::string shootPath = basePath + "shoot.wav";
                 std::string explosionPath = basePath + "explosion.wav";
@@ -111,43 +112,43 @@ public:
                     if (shootLoaded) {
                         shootSound.setBuffer(shootSoundBuffer);
                         shootSound.setVolume(effectsVolume);
-                        std::cout << "✓ Son de tir chargé: " << shootPath << std::endl;
+                        std::cout << "✓ Shoot sound loaded: " << shootPath << std::endl;
                     }
                     if (explosionLoaded) {
                         explosionSound.setBuffer(explosionSoundBuffer);
                         explosionSound.setVolume(effectsVolume);
-                        std::cout << "✓ Son d'explosion chargé: " << explosionPath << std::endl;
+                        std::cout << "✓ Explosion sound loaded: " << explosionPath << std::endl;
                     }
                     if (upgradeLoaded) {
                         upgradeSound.setBuffer(upgradeSoundBuffer);
                         upgradeSound.setVolume(effectsVolume);
-                        std::cout << "✓ Son d'amélioration chargé: " << upgradePath << std::endl;
+                        std::cout << "✓ Upgrade sound loaded: " << upgradePath << std::endl;
                     }
                 }
             }
         }
         
         if (!music1Loaded && !music2Loaded) {
-            std::cout << "⚠ AUCUNE musique trouvée! Placez background_music1.ogg et/ou background_music2.ogg dans assets/" << std::endl;
+            std::cout << "⚠ NO music found! Place background_music1.ogg and/or background_music2.ogg in assets/" << std::endl;
         }
         if (!soundsLoaded) {
-            std::cout << "⚠ Effets sonores non trouvés! Placez shoot.wav, explosion.wav, upgrade.wav dans assets/" << std::endl;
+            std::cout << "⚠ Sound effects not found! Place shoot.wav, explosion.wav, upgrade.wav in assets/" << std::endl;
         }
         
-        std::cout << "=== FIN CHARGEMENT AUDIO ===" << std::endl;
+        std::cout << "=== END AUDIO LOADING ===" << std::endl;
     }
     
     void startMusic() {
         if (isMuted) return;
         
-        stopMusic(); // Arrête toute musique en cours
+        stopMusic(); // Stop any current music
         
         if (currentMusicTrack == 0 && music1Loaded) {
             backgroundMusic1.play();
-            std::cout << "Lecture de la musique 1" << std::endl;
+            std::cout << "Playing music 1" << std::endl;
         } else if (currentMusicTrack == 1 && music2Loaded) {
             backgroundMusic2.play();
-            std::cout << "Lecture de la musique 2" << std::endl;
+            std::cout << "Playing music 2" << std::endl;
         }
     }
     
@@ -160,7 +161,7 @@ public:
         if (music1Loaded && music2Loaded) {
             currentMusicTrack = (currentMusicTrack == 0) ? 1 : 0;
             startMusic();
-            std::cout << "Changement vers musique " << (currentMusicTrack + 1) << std::endl;
+            std::cout << "Switching to music " << (currentMusicTrack + 1) << std::endl;
         }
     }
     
@@ -168,47 +169,47 @@ public:
         isMuted = !isMuted;
         if (isMuted) {
             stopMusic();
-            std::cout << "Audio muet" << std::endl;
+            std::cout << "Audio muted" << std::endl;
         } else {
             startMusic();
-            std::cout << "Audio activé" << std::endl;
+            std::cout << "Audio enabled" << std::endl;
         }
     }
     
     void increaseMasterVolume() {
         masterVolume = std::min(100.0f, masterVolume + 10.0f);
         updateVolumes();
-        std::cout << "Volume principal: " << masterVolume << "%" << std::endl;
+        std::cout << "Master volume: " << masterVolume << "%" << std::endl;
     }
     
     void decreaseMasterVolume() {
         masterVolume = std::max(0.0f, masterVolume - 10.0f);
         updateVolumes();
-        std::cout << "Volume principal: " << masterVolume << "%" << std::endl;
+        std::cout << "Master volume: " << masterVolume << "%" << std::endl;
     }
     
     void increaseMusicVolume() {
         musicVolume = std::min(100.0f, musicVolume + 10.0f);
         updateVolumes();
-        std::cout << "Volume musique: " << musicVolume << "%" << std::endl;
+        std::cout << "Music volume: " << musicVolume << "%" << std::endl;
     }
     
     void decreaseMusicVolume() {
         musicVolume = std::max(0.0f, musicVolume - 10.0f);
         updateVolumes();
-        std::cout << "Volume musique: " << musicVolume << "%" << std::endl;
+        std::cout << "Music volume: " << musicVolume << "%" << std::endl;
     }
     
     void increaseEffectsVolume() {
         effectsVolume = std::min(100.0f, effectsVolume + 10.0f);
         updateVolumes();
-        std::cout << "Volume effets: " << effectsVolume << "%" << std::endl;
+        std::cout << "Effects volume: " << effectsVolume << "%" << std::endl;
     }
     
     void decreaseEffectsVolume() {
         effectsVolume = std::max(0.0f, effectsVolume - 10.0f);
         updateVolumes();
-        std::cout << "Volume effets: " << effectsVolume << "%" << std::endl;
+        std::cout << "Effects volume: " << effectsVolume << "%" << std::endl;
     }
     
     void updateVolumes() {
@@ -240,7 +241,7 @@ public:
         }
     }
     
-    // Getters pour l'interface
+    // Getters for interface
     float getMasterVolume() const { return masterVolume; }
     float getMusicVolume() const { return musicVolume; }
     float getEffectsVolume() const { return effectsVolume; }
@@ -456,7 +457,7 @@ public:
 };
 
 // ===========================================
-// HALL OF FAME MANAGER - Gestion des scores
+// HALL OF FAME MANAGER - Score management
 // ===========================================
 class HallOfFameManager {
 private:
@@ -479,7 +480,7 @@ public:
                 file >> scoresJson;
                 file.close();
                 
-                // Convertir JSON en ScoreEntry
+                // Convert JSON to ScoreEntry
                 for (const auto& scoreData : scoresJson) {
                     std::string name = scoreData.value("name", "Anonymous");
                     int score = scoreData.value("score", 0);
@@ -490,19 +491,19 @@ public:
                     scores.emplace_back(name, score, level, wave, date);
                 }
                 
-                // Trier par score décroissant
+                // Sort by descending score
                 std::sort(scores.begin(), scores.end(), 
                     [](const ScoreEntry& a, const ScoreEntry& b) {
                         return a.score > b.score;
                     });
                 
                 scoresLoaded = true;
-                std::cout << "✓ Hall of Fame chargé: " << scores.size() << " scores trouvés" << std::endl;
+                std::cout << "✓ Hall of Fame loaded: " << scores.size() << " scores found" << std::endl;
             } else {
-                std::cout << "ℹ Aucun fichier de scores trouvé (scores.json)" << std::endl;
+                std::cout << "ℹ No score file found (scores.json)" << std::endl;
             }
         } catch (const std::exception& e) {
-            std::cerr << "⚠ Erreur lors du chargement des scores: " << e.what() << std::endl;
+            std::cerr << "⚠ Error loading scores: " << e.what() << std::endl;
         }
     }
     
@@ -525,7 +526,7 @@ public:
         return scores.size();
     }
     
-    // Formater une date pour l'affichage
+    // Format a date for display
     std::string formatDate(std::time_t timestamp) const {
         std::tm* timeInfo = std::localtime(&timestamp);
         std::ostringstream oss;
@@ -553,7 +554,7 @@ public:
 
     Enemy(int hp, float spd, int rew, const std::string& t) 
         : health(hp), maxHealth(hp), speed(spd), reward(rew), alive(true), pathIndex(0), type(t) {
-        // La position initiale sera définie par le Game
+        // Initial position will be set by the Game
     }
 
     virtual ~Enemy() = default;
@@ -750,7 +751,7 @@ public:
             }
         }
         
-        // Jouer le son de tir
+        // Play shoot sound
         if (audioManager) {
             audioManager->playShootSound();
         }
@@ -770,7 +771,7 @@ public:
                 int oldHealth = targetEnemy->health;
                 targetEnemy->takeDamage(damage);
                 
-                // Jouer le son d'explosion quand l'ennemi meurt
+                // Play explosion sound when enemy dies
                 if (targetEnemy->health <= 0 && oldHealth > 0) {
                     gameSubject->notifyObservers(GameEvent(GameEvent::ENEMY_KILLED, targetEnemy->reward));
                     if (audioManager) {
@@ -1088,6 +1089,8 @@ private:
     bool waitingForName;
     bool showAudioControls;
     bool showHallOfFame;
+    bool isPaused;
+    float autoStartTimer;  // New timer for automatic start
     
     // Preset paths
     const std::vector<std::vector<sf::Vector2f>> predefinedPaths = {
@@ -1182,12 +1185,12 @@ private:
             outFile << scores.dump(4);
             outFile.close();
             
-            // Recharger le Hall of Fame après sauvegarde
+            // Reload Hall of Fame after saving
             hallOfFameManager.loadScores();
             
-            std::cout << "Score sauvegardé avec succès!" << std::endl;
+            std::cout << "Score saved successfully!" << std::endl;
         } catch (const std::exception& e) {
-            std::cerr << "Erreur lors de la sauvegarde du score: " << e.what() << std::endl;
+            std::cerr << "Error saving score: " << e.what() << std::endl;
         }
     }
     
@@ -1208,28 +1211,31 @@ private:
         path = predefinedPaths[0];
         showAudioControls = false;
         showHallOfFame = false;
+        autoStartTimer = AUTO_START_TIMER;  // Reset timer
         
-        // Redémarrer la musique
+        // Restart music
         audioManager.startMusic();
     }
 
 public:
-    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Tower Defense avec Hall of Fame"),
+    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Laura, Louis and Elodie's Tower Defense"),
              gold(200), lives(3), wave(1), level(1), enemySpawnTimer(0), 
              enemiesInWave(5), enemiesSpawned(0), waveActive(false), score(0),
              gameOver(false), showReplayOption(false), showSaveOption(false),
-             playerName(""), waitingForName(false), showAudioControls(false), showHallOfFame(false) {
+             playerName(""), waitingForName(false), showAudioControls(false), 
+             showHallOfFame(false), isPaused(false), autoStartTimer(AUTO_START_TIMER) {
         
         // Initialize the random number generator 
         srand(time(nullptr));
         
-        std::cout << "=== TOWER DEFENSE AVEC HALL OF FAME ===" << std::endl;
+        std::cout << "=== TOWER DEFENSE GAME ===" << std::endl;
         std::cout << "✓ Factory Pattern: Enemy creation" << std::endl;
         std::cout << "✓ Factory Pattern: Tower creation" << std::endl;
         std::cout << "✓ Observer Pattern: Event management" << std::endl;
         std::cout << "✓ Resource Manager: Sprites and font management" << std::endl;
-        std::cout << "✓ Audio Manager: Musique et effets sonores" << std::endl;
-        std::cout << "✓ Hall of Fame Manager: Gestion des scores" << std::endl;
+        std::cout << "✓ Audio Manager: Music and sound effects" << std::endl;
+        std::cout << "✓ Hall of Fame Manager: Score management" << std::endl;
+        std::cout << "✓ Auto-Wave Timer: Automatic start after 15s" << std::endl;
         
         // Subscribe to its own events
         addObserver(this);
@@ -1237,30 +1243,15 @@ public:
         // Initialize the first path
         path = predefinedPaths[0];
         
-        // Démarrer la musique
+        // Start music
         audioManager.startMusic();
         
-        std::cout << "CONTRÔLES DU JEU:" << std::endl;
-        std::cout << "- Clic gauche: Placer une tour" << std::endl;
-        std::cout << "- Clic sur tour: Améliorer" << std::endl;
-        std::cout << "- ESPACE: Commencer la vague" << std::endl;
-        std::cout << "- A: Afficher/masquer contrôles audio" << std::endl;
-        std::cout << "- H: Afficher/masquer Hall of Fame" << std::endl;
-        std::cout << "\nCONTRÔLES AUDIO:" << std::endl;
-        std::cout << "- M: Mute/Unmute" << std::endl;
-        std::cout << "- N: Changer de musique" << std::endl;
-        std::cout << "- +/-: Volume principal" << std::endl;
-        std::cout << "- 1/2: Volume musique" << std::endl;
-        std::cout << "- 3/4: Volume effets" << std::endl;
-        std::cout << "\nFICHIERS REQUIS (placez dans assets/):" << std::endl;
-        std::cout << "- arial.ttf (OBLIGATOIRE pour le texte)" << std::endl;
-        std::cout << "- background_music1.ogg (musique 1)" << std::endl;
-        std::cout << "- background_music2.ogg (musique 2)" << std::endl;
-        std::cout << "- shoot.wav (son de tir)" << std::endl;
-        std::cout << "- explosion.wav (son d'explosion)" << std::endl;
-        std::cout << "- upgrade.wav (son d'amélioration)" << std::endl;
-        std::cout << "- gold_icon.png (optionnel)" << std::endl;
-        std::cout << "- heart_icon.png (optionnel)" << std::endl;
+        std::cout << "GAME CONTROLS:" << std::endl;
+        std::cout << "- Left click: Place a tower" << std::endl;
+        std::cout << "- Click on tower: Upgrade" << std::endl;
+        std::cout << "- SPACE: Start wave (or wait 15s)" << std::endl;
+        std::cout << "- A: Show/hide audio controls" << std::endl;
+        std::cout << "- H: Show/hide Hall of Fame" << std::endl;
     }
 
     // Observer implementation - Reacts to game events
@@ -1280,6 +1271,7 @@ public:
                 
             case GameEvent::WAVE_COMPLETED:
                 score += 100;
+                autoStartTimer = AUTO_START_TIMER;  // Reset timer for next wave
                 std::cout << "Observer: Wave completed! +100 bonus points" << std::endl;
                 break;
         }
@@ -1314,7 +1306,7 @@ public:
             }
             
             if (event.type == sf::Event::KeyPressed) {
-                // Contrôles audio
+                // Audio controls
                 if (event.key.code == sf::Keyboard::M) {
                     audioManager.toggleMute();
                 }
@@ -1345,10 +1337,10 @@ public:
                 else if (event.key.code == sf::Keyboard::H) {
                     showHallOfFame = !showHallOfFame;
                     if (showHallOfFame) {
-                        hallOfFameManager.loadScores(); // Recharger les scores
+                        hallOfFameManager.loadScores(); // Reload scores
                     }
                 }
-                // Contrôles de jeu
+                // Game controls
                 else if (event.key.code == sf::Keyboard::Return && waitingForName) {
                     waitingForName = false;
                     showSaveOption = true;
@@ -1362,6 +1354,14 @@ public:
                 else if (event.key.code == sf::Keyboard::S && showSaveOption) {
                     saveScore();
                     showSaveOption = false;
+                } 
+                else if (event.key.code == sf::Keyboard::P && !gameOver) {
+                    isPaused = !isPaused;
+                    if (isPaused) {
+                        audioManager.stopMusic();
+                    } else {
+                        audioManager.startMusic();
+                    }
                 }
             }
             
@@ -1376,7 +1376,7 @@ public:
                     if (distance <= 20 && tower->canUpgrade() && gold >= tower->getUpgradeCost()) {
                         gold -= tower->getUpgradeCost();
                         tower->upgrade();
-                        audioManager.playUpgradeSound(); // Son d'amélioration
+                        audioManager.playUpgradeSound(); // Uograde sound
                         towerClicked = true;
                         std::cout << "Tower upgraded to level " << tower->level << std::endl;
                         break;
@@ -1449,9 +1449,17 @@ public:
     }
 
     void update(float deltaTime) {
-        // Stop updating if game is over
-        if (lives <= 0 || wave > 10) {
+        // Stop updating if game is over or paused
+        if (isPaused || lives <= 0 || wave > 10) {
             return;
+        }
+        
+        // Timer to automatically start the wave
+        if (!waveActive && !gameOver && lives > 0) {
+            autoStartTimer -= deltaTime;
+            if (autoStartTimer <= 0) {
+                startWave();
+            }
         }
         
         // Spawn enemies with Factory Pattern
@@ -1542,7 +1550,7 @@ public:
             } else {
                 enemiesInWave += 2;
             }
-            std::cout << "Press SPACE for level " << level << " wave " << wave << std::endl;
+            std::cout << "Press SPACE for level " << level << " wave " << wave << " (or wait " << static_cast<int>(autoStartTimer) << "s)" << std::endl;
         }
 
         // Check for game over
@@ -1550,7 +1558,7 @@ public:
             gameOver = true;
             showReplayOption = true;
             waitingForName = true;
-            audioManager.stopMusic(); // Arrêter la musique en cas de défaite
+            audioManager.stopMusic(); // Stop music in case of game over
         }
     }
 
@@ -1668,122 +1676,131 @@ public:
 
         // Audio controls panel (toggle with 'A')
         if (showAudioControls) {
-            // Semi-transparent background
+            // Semi-transparent background 
             sf::RectangleShape controlsBg(sf::Vector2f(300, 280));
-            controlsBg.setPosition(10, 80);
+            controlsBg.setPosition(10, WINDOW_HEIGHT - 320); 
             controlsBg.setFillColor(sf::Color(0, 0, 0, 180));
             controlsBg.setOutlineColor(sf::Color::White);
             controlsBg.setOutlineThickness(2);
             window.draw(controlsBg);
             
-            drawText(window, "=== CONTROLES AUDIO ===", 20, 90, sf::Color::White, 16);
-            drawText(window, "M: Mute/Unmute", 20, 110, sf::Color::Cyan, 14);
+           float baseY = WINDOW_HEIGHT - 310; // To align the text
+            drawText(window, "=== AUDIO CONTROLS ===", 20, baseY, sf::Color::White, 16);
+            drawText(window, "M: Mute/Unmute", 20, baseY + 20, sf::Color::Cyan, 14);
             if (audioManager.hasBothMusicsLoaded()) {
-                drawText(window, "N: Changer musique", 20, 130, sf::Color::Cyan, 14);
+                drawText(window, "N: Change music", 20, baseY + 40, sf::Color::Cyan, 14);
             }
-            drawText(window, "+/-: Volume principal (" + floatToString(audioManager.getMasterVolume()) + "%)", 20, 150, sf::Color::Yellow, 14);
-            drawText(window, "1/2: Volume musique (" + floatToString(audioManager.getMusicVolume()) + "%)", 20, 170, sf::Color::Yellow, 14);
-            drawText(window, "3/4: Volume effets (" + floatToString(audioManager.getEffectsVolume()) + "%)", 20, 190, sf::Color::Yellow, 14);
-            drawText(window, "A: Masquer ce panneau", 20, 210, sf::Color::White, 14);
+            drawText(window, "+/-: Main volume (" + floatToString(audioManager.getMasterVolume()) + "%)", 20, baseY + 60, sf::Color::Yellow, 14);
+            drawText(window, "1/2: Music volume (" + floatToString(audioManager.getMusicVolume()) + "%)", 20, baseY + 80, sf::Color::Yellow, 14);
+            drawText(window, "3/4: Sound effect volume (" + floatToString(audioManager.getEffectsVolume()) + "%)", 20, baseY + 100, sf::Color::Yellow, 14);
+            drawText(window, "A: Hide this panel", 20, baseY + 120, sf::Color::White, 14);
             
-            // Current music indicator
             if (audioManager.hasMusicLoaded()) {
-                std::string currentMusic = "Musique actuelle: " + intToString(audioManager.getCurrentMusicTrack() + 1);
-                drawText(window, currentMusic, 20, 240, sf::Color::Green, 14);
+                std::string currentMusic = "Current music: " + intToString(audioManager.getCurrentMusicTrack() + 1);
+                drawText(window, currentMusic, 20, baseY + 150, sf::Color::Green, 14);
             } else {
-                drawText(window, "Aucune musique chargée", 20, 240, sf::Color::Red, 14);
+                drawText(window, "No music loaded", 20, baseY + 150, sf::Color::Red, 14);
             }
             
-            drawText(window, "H: Hall of Fame", 20, 280, sf::Color::Magenta, 14);
+            drawText(window, "A: Hide this panel", 20, baseY + 190, sf::Color::Magenta, 14);
         }
 
         // Hall of Fame panel (toggle with 'H')
         if (showHallOfFame) {
-            // Panneau semi-transparent pour le Hall of Fame
+            // Semi-transparent panel for the Hall of Fame
             sf::RectangleShape hallOfFameBg(sf::Vector2f(450, 400));
             hallOfFameBg.setPosition(530, 80);
             hallOfFameBg.setFillColor(sf::Color(0, 0, 0, 200));
-            hallOfFameBg.setOutlineColor(sf::Color(255, 215, 0)); // Couleur or (Gold)
+            hallOfFameBg.setOutlineColor(sf::Color(255, 215, 0)); 
             hallOfFameBg.setOutlineThickness(3);
             window.draw(hallOfFameBg);
             
-            // Titre du Hall of Fame
-            drawText(window, "=== HALL OF FAME ===", 550, 95, sf::Color(255, 215, 0), 20); // Couleur or
+            // Hall of Fame title
+            drawText(window, "=== HALL OF FAME ===", 550, 95, sf::Color(255, 215, 0), 20); // Gold color
             
             if (hallOfFameManager.hasScores()) {
                 std::vector<ScoreEntry> topScores = hallOfFameManager.getTopScores(15);
-                
-                // En-têtes des colonnes
-                drawText(window, "Rang  Nom             Score    Niveau  Date", 550, 125, sf::Color::White, 14);
-                drawText(window, "--------------------------------------------", 550, 145, sf::Color(128, 128, 128), 14); // Couleur grise
-                
-                // Afficher les scores
+
+                // Headers of columns with fixed sizes
+                drawText(window, "Rank", 560, 125, sf::Color::White, 14);
+                drawText(window, "Name", 600, 125, sf::Color::White, 14);
+                drawText(window, "Score", 750, 125, sf::Color::White, 14);
+                drawText(window, "Level", 820, 125, sf::Color::White, 14);
+                drawText(window, "Date", 880, 125, sf::Color::White, 14);
+                drawText(window, "------------------------------------------------", 550, 145, sf::Color(128, 128, 128), 14);
+              
+                // Display scores
                 for (size_t i = 0; i < topScores.size(); i++) {
                     const ScoreEntry& entry = topScores[i];
                     float yPos = 165 + i * 18;
                     
-                    // Couleur selon le rang
+                    // Color based on the rank
                     sf::Color rankColor = sf::Color::White;
-                    if (i == 0) rankColor = sf::Color(255, 215, 0);       // 1er place (Or)
-                    else if (i == 1) rankColor = sf::Color(192, 192, 192); // 2ème place (Argent)
-                    else if (i == 2) rankColor = sf::Color(205, 127, 50);  // 3ème place (Bronze)
+                    if (i == 0) rankColor = sf::Color(255, 215, 0);       // 1st place (gold)
+                    else if (i == 1) rankColor = sf::Color(192, 192, 192); // 2nd place (silver)
+                    else if (i == 2) rankColor = sf::Color(205, 127, 50);  // 3rd place (bronze)
                     
-                    // Formatage des données
+                    // Format data with fixed alignment
                     std::string rank = intToString(i + 1);
-                    if (rank.length() == 1) rank = " " + rank; // Alignement
                     
                     std::string name = entry.name;
-                    if (name.length() > 12) name = name.substr(0, 12); // Tronquer si trop long
-                    while (name.length() < 12) name += " "; // Compléter avec des espaces
+                    if (name.length() > 15) name = name.substr(0, 15); // Cut name if too long
                     
                     std::string scoreStr = intToString(entry.score);
-                    while (scoreStr.length() < 6) scoreStr = " " + scoreStr; // Alignement à droite
                     
                     std::string levelStr = "L" + intToString(entry.level) + "W" + intToString(entry.wave);
-                    while (levelStr.length() < 6) levelStr += " ";
                     
                     std::string date = hallOfFameManager.formatDate(entry.date);
                     
-                    // Ligne complète
-                    std::string fullLine = rank + "   " + name + " " + scoreStr + "  " + levelStr + " " + date;
-                    
-                    drawText(window, fullLine, 550, yPos, rankColor, 12);
+                    // Display of each column with fixed size
+                    drawText(window, rank, 560, yPos, rankColor, 12);        // Rank column
+                    drawText(window, name, 600, yPos, rankColor, 12);        // Name column
+                    drawText(window, scoreStr, 750, yPos, rankColor, 12);    // Score column
+                    drawText(window, levelStr, 820, yPos, rankColor, 12);    // Level column
+                    drawText(window, date, 880, yPos, rankColor, 12);       // Date column
                 }
                 
-                // Information en bas
-                std::string totalScoresText = "Total des scores enregistrés: " + intToString(hallOfFameManager.getScoreCount());
+                // Information at the bottoù
+                std::string totalScoresText = "Total scores saved: " + intToString(hallOfFameManager.getScoreCount());
                 drawText(window, totalScoresText, 550, 430, sf::Color::Cyan, 12);
                 
             } else {
-                // Aucun score disponible
-                drawText(window, "Aucun score enregistré", 550, 150, sf::Color(128, 128, 128), 16); // Couleur grise
+                // No score available
+                drawText(window, "No score is available", 550, 150, sf::Color(128, 128, 128), 16); // Couleur grise
                 drawText(window, "", 550, 180, sf::Color::White, 14);
-                drawText(window, "Jouez et sauvegardez votre", 550, 200, sf::Color::White, 14);
-                drawText(window, "score pour apparaître ici!", 550, 220, sf::Color::White, 14);
+                drawText(window, "Play and save your score", 550, 200, sf::Color::White, 14);
+                drawText(window, "to have it show here!", 550, 220, sf::Color::White, 14);
             }
             
-            drawText(window, "H: Masquer ce panneau", 550, 455, sf::Color::White, 14);
+            drawText(window, "H: Hide this pannel", 550, 455, sf::Color::White, 14);
         }
 
-        // "PRESS SPACE TO START" text at center of screen
+        // "PRESS SPACE TO START" text at center of screen 
         if (!waveActive && lives > 0) {
             // Semi-transparent background for text
-            sf::RectangleShape textBg(sf::Vector2f(500, 80));
-            textBg.setPosition(WINDOW_WIDTH/2 - 250, WINDOW_HEIGHT/2 - 40);
+            sf::RectangleShape textBg(sf::Vector2f(500, 120)); 
+            textBg.setPosition(WINDOW_WIDTH/2 - 250, WINDOW_HEIGHT/2 - 60);
             textBg.setFillColor(sf::Color(0, 0, 0, 150));
             textBg.setOutlineColor(sf::Color::Green);
             textBg.setOutlineThickness(3);
             window.draw(textBg);
             
             // Large, bold text for better visibility
-            drawText(window, "PRESS SPACE", WINDOW_WIDTH/2 - 120, WINDOW_HEIGHT/2 - 25, sf::Color::Green, 32);
+            drawText(window, "PRESS SPACE", WINDOW_WIDTH/2 - 120, WINDOW_HEIGHT/2 - 50, sf::Color::Green, 32);
             drawText(window, "TO START LEVEL " + intToString(level) + " WAVE " + intToString(wave), 
-                    WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 + 10, sf::Color::Green, 22);
+                    WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 - 10, sf::Color::Green, 22);
+            
+            // Display next wave timer 
+            int secondsLeft = static_cast<int>(autoStartTimer) + 1;
+            if (secondsLeft > 0) {
+                std::string timerText = "Auto-start in " + intToString(secondsLeft) + "s";
+                drawText(window, timerText, WINDOW_WIDTH/2 - 120, WINDOW_HEIGHT/2 + 15, sf::Color::Yellow, 18);
+            }
             
             // Display message for each new level
             if (wave == 1) {
                 drawText(window, "NEW PATH - PLACE YOUR TOWERS!", 
-                        WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 + 40, sf::Color::Yellow, 20);
+                        WINDOW_WIDTH/2 - 200, WINDOW_HEIGHT/2 + 35, sf::Color::Yellow, 16);
             }
         }
 
@@ -1814,8 +1831,21 @@ public:
             }
         }
 
+        // Display pause state
+        if (isPaused) {
+            sf::RectangleShape pauseBg(sf::Vector2f(300, 100));
+            pauseBg.setPosition(WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2 - 50);
+            pauseBg.setFillColor(sf::Color(0, 0, 0, 150));
+            pauseBg.setOutlineColor(sf::Color::Yellow);
+            pauseBg.setOutlineThickness(3);
+            window.draw(pauseBg);
+            
+            drawText(window, "PAUSE", WINDOW_WIDTH/2 - 50, WINDOW_HEIGHT/2 - 30, sf::Color::Yellow, 32);
+            drawText(window, "Press P to resume", WINDOW_WIDTH/2 - 100, WINDOW_HEIGHT/2 + 10, sf::Color::White, 20);
+        }
+
         // Instructions at bottom of screen (clear and readable)
-        drawText(window, "Click: Place tower (50 gold) | Click on tower: Upgrade | SPACE: Start wave | A: Audio | H: Hall of Fame", 
+        drawText(window, "Click: Place tower (50 gold) | Click on tower: Upgrade (100 gold then 200 gold) | SPACE: Start wave | A: Audio | H: Hall of Fame | P: Pause", 
                 10, WINDOW_HEIGHT - 30, sf::Color::White, 15);
 
         window.display();
@@ -1823,7 +1853,7 @@ public:
 };
 
 int main() {
-    std::cout << "Tower Defense " << std::endl;
+    std::cout << "Laura, Louis and Elodie's Tower Defense" << std::endl;
     std::cout << "=======================================" << std::endl;
     Game game;
     game.run();

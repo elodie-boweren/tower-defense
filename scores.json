@@ -1,12 +1,5 @@
 [
     {
-        "date": 1749651074,
-        "level": 2,
-        "name": "",
-        "score": 2340,
-        "wave": 1
-    },
-    {
         "date": 1749651120,
         "level": 1,
         "name": "Elodie",
@@ -47,5 +40,26 @@
         "name": "lalala",
         "score": 1520,
         "wave": 3
+    },
+    {
+        "date": 1749842539,
+        "level": 1,
+        "name": "Hello",
+        "score": 1810,
+        "wave": 3
+    },
+    {
+        "date": 1749845435,
+        "level": 2,
+        "name": "leo",
+        "score": 2240,
+        "wave": 1
+    },
+    {
+        "date": 1749849486,
+        "level": 13,
+        "name": "Baptiste",
+        "score": 368500,
+        "wave": 1
     }
 ]
